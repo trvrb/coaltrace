@@ -3,12 +3,16 @@ float CHARGE;
 float MAXVEL;
 float MAXRAD;
 float DISTBORDER;
+int INITIALCOUNT;
 
 void setup() {
+
 	CHARGE = 40.0;
 	MAXVEL = 0.15;
 	MAXRAD = 6;
-	DISTBORDER = 20;
+	DISTBORDER = 25;
+	INITIALCOUNT = 5;
+	
 	size(640, 360);
 //	frameRate(1000);
 //	size(screen.width, screen.height);
@@ -18,14 +22,14 @@ void setup() {
 }
 
 void draw() {
-	background(50);
-	fill(204);
+	background(50); // 255
 	population.run();
 }
 
 // Add a new individual into the population
 void mousePressed() {
 //	population.addIndividual(new Individual(new PVector(mouseX,mouseY)));
+	population.die();
 	population.replicate();
 }
 
@@ -35,13 +39,17 @@ class Individual {
 	PVector vel;
 	PVector acc;
 	float r;  // radius
+	boolean growing;
+	boolean dying;
   
 	Individual(PVector l) {
 		loc = l.get();
 //    	vel = new PVector(random(-1,1),random(-1,1));
     	vel = new PVector(0,0);
     	acc = new PVector(0,0);
-    	r = 0;
+    	r = 0.001;
+    	growing = true;
+    	dying = false;
 	}
   
 	void run() {
@@ -50,21 +58,26 @@ class Individual {
 	}
   
 	void update() {
-		vel.add(acc);          				// update velocity
-		vel.x = constrain(vel.x,-MAXVEL,MAXVEL);
-		loc.add(vel);          				// update location
-		loc.y = height-DISTBORDER;				// constrains to horizontal line		
+		vel.add(acc);          						// update velocity
+		vel.x = constrain(vel.x,-MAXVEL,MAXVEL);	// contrains speed
+		
+		loc.add(vel);          						// update location
+		loc.y = height-DISTBORDER;					// constrains to horizontal line	
+		
 		vel = new PVector(0,0);
 		acc = new PVector(0,0);
-		if (r < MAXRAD) {
-			r = r + 0.25;
-		}
+		
+		if (growing) { r = r + 0.25; }
+		if (r > MAXRAD) { growing = false; r = MAXRAD; }
+		
+		if (dying) { r = r - 0.25; }
+	//	if (r < 0) { r = 0; }
 		
 	}
   
 	void display() {
-    	fill(200,100);
-    	stroke(255);
+    	fill(150); // 223,227,197
+    	stroke(255); // 50
     	ellipse(loc.x, loc.y, r*2, r*2);
   	}
   	
@@ -77,7 +90,9 @@ class Population {
 
   	Population() {
     	pop = new ArrayList(); // Initialize the arraylist
-    	pop.add(new Individual(new PVector(width/2,height/2)));
+    	for (int i=0; i < INITIALCOUNT; i++) {
+    		pop.add(new Individual(new PVector(random(0,width),random(0,height))));
+    	}
   	}
 
 	void run() {
@@ -85,6 +100,7 @@ class Population {
 		repulsion();
 		update();
 		exclusion();
+		cleanup();
 		display();
 		
 	}
@@ -100,6 +116,27 @@ class Population {
 		float newy = ind.loc.y + random(-1,1);
 		pop.add(new Individual(new PVector(newx,newy)));
 		
+	}
+	
+	void die() {
+		int rand = int(random(0,pop.size()));
+		Individual ind = (Individual) pop.get(rand);
+		while (ind.dying) {									// pick another
+			rand = int(random(0,pop.size()));
+			ind = (Individual) pop.get(rand);
+		}
+		ind.dying = true;
+		ind.growing = false;
+	}
+
+	void cleanup() {
+		for (int i = 0; i < pop.size(); i++) {
+			Individual ind = (Individual) pop.get(i);  
+			if (ind.r < 0) { 
+				pop.remove(i);
+				i = 0;
+			}
+		}
 	}
 
 	void update() {

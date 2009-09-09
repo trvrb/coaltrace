@@ -1,10 +1,14 @@
 Population population;
 float CHARGE;
 float MAXVEL;
+float MAXRAD;
+float DISTBORDER;
 
 void setup() {
 	CHARGE = 40.0;
-	MAXVEL = 1.0;
+	MAXVEL = 0.15;
+	MAXRAD = 6;
+	DISTBORDER = 20;
 	size(640, 360);
 //	frameRate(1000);
 //	size(screen.width, screen.height);
@@ -21,7 +25,8 @@ void draw() {
 
 // Add a new individual into the population
 void mousePressed() {
-	population.addIndividual(new Individual(new PVector(mouseX,mouseY)));
+//	population.addIndividual(new Individual(new PVector(mouseX,mouseY)));
+	population.replicate();
 }
 
 class Individual {
@@ -36,7 +41,7 @@ class Individual {
 //    	vel = new PVector(random(-1,1),random(-1,1));
     	vel = new PVector(0,0);
     	acc = new PVector(0,0);
-    	r = 4.0;
+    	r = 0;
 	}
   
 	void run() {
@@ -48,9 +53,12 @@ class Individual {
 		vel.add(acc);          				// update velocity
 		vel.x = constrain(vel.x,-MAXVEL,MAXVEL);
 		loc.add(vel);          				// update location
-		loc.y = height/2;					// constrains to horizontal line
+		loc.y = height-DISTBORDER;				// constrains to horizontal line		
 		vel = new PVector(0,0);
 		acc = new PVector(0,0);
+		if (r < MAXRAD) {
+			r = r + 0.25;
+		}
 		
 	}
   
@@ -83,6 +91,15 @@ class Population {
 
   	void addIndividual(Individual ind) {
 		pop.add(ind);
+	}
+
+	void replicate() {
+		int rand = int(random(0,pop.size()));
+		Individual ind = (Individual) pop.get(rand);
+		float newx = ind.loc.x + random(-1,1);
+		float newy = ind.loc.y + random(-1,1);
+		pop.add(new Individual(new PVector(newx,newy)));
+		
 	}
 
 	void update() {
@@ -193,6 +210,5 @@ class Population {
 
 float coulomb(float d) {
 	return sq(CHARGE) / sq(d);
-//	return sq(CHARGE) / d;
 }
 

@@ -1,4 +1,3 @@
-Population population;
 float CHARGE;
 float MAXVEL;
 float MAXRAD;
@@ -12,8 +11,17 @@ float SPLITCHANCE;
 float MUTCHANCE;
 boolean TWODIMEN;
 float INDHUE;
+boolean LOOPING;
+boolean MUTATION;
+boolean TRACING;
+
+Population population;
 
 void setup() {
+
+	TWODIMEN = true;
+	MUTATION = true;
+	TRACING = true;
 
 	CHARGE = 50;
 	MAXVEL = 2;
@@ -21,13 +29,13 @@ void setup() {
 	DISTBORDER = 25;
 	INITIALCOUNT = 12; // 12
 	WALLMULTIPLIER = 10;
-	TRACEDEPTH = 200; // 200
+	TRACEDEPTH = 300; // 200
 	TRACESTEP = 20; // 20
 	COUNTER = 0;
 	SPLITCHANCE = 0.2;  // 0.2
 	MUTCHANCE = 0.1;
-	TWODIMEN = true;
 	INDHUE = 95;
+	LOOPING = true;
 	
 	size(600, 600);
 	colorMode(HSB,100);
@@ -47,9 +55,31 @@ void draw() {
 
 // Add a new individual into the population
 void mousePressed() {
-//	population.addIndividual(new Individual(new PVector(mouseX,mouseY)));
 	population.die();
-	population.replicate();
+	population.addIndividual(new Individual(new PVector(mouseX,mouseY)));
+}
+
+void keyPressed() {
+	if (key == ' ') {
+		if (LOOPING) {
+			LOOPING = false;
+			noLoop();
+		}
+		else if (!LOOPING) {
+			LOOPING = true;
+			loop();
+		}
+  	} 
+  	if (key == '2') {
+		if (TWODIMEN) { 
+			population.resetTrace();
+			TWODIMEN = false; 
+		}
+		else if (!TWODIMEN) { 
+			population.resetTrace();
+			TWODIMEN = true; 
+		}
+  	} 	
 }
 
 class Individual {
@@ -70,11 +100,17 @@ class Individual {
     	r = 0.001;
     	growing = true;
     	dying = false;
-  		hue = random(0,100);  	
+    	
+    	if (MUTATION) { hue = random(0,100); }
+  		else { hue = INDHUE; }
+  		
+  		if (!TWODIMEN) {
+			loc.y = height-DISTBORDER;					// constrains to horizontal line	
+		}
   
     	trace = new LinkedList();
     	for (int i = 0; i < TRACEDEPTH; i++) {
-    		PVector tl = loc.get();
+    		PVector tl = new PVector(loc.x,loc.y,hue);
     		trace.add(tl);
     	}
 	}
@@ -119,10 +155,13 @@ class Individual {
 		if (dying) { r = r - 0.4; }
 		
 		reset();
-		mutate();
+		
+		if (MUTATION) {
+			mutate();
+		}
 	
 		if (COUNTER % TRACESTEP == 0) {
-			extend();
+			extendTrace();
 		}
 		
 	}
@@ -132,11 +171,19 @@ class Individual {
 		acc = new PVector(0,0);
 	}
 	
-	void extend() {
+	void extendTrace() {
 	//	PVector tl = loc.get();
     	PVector tl = new PVector(loc.x,loc.y,hue);
     	trace.add(tl);
     	trace.remove();
+	}
+	
+	void resetTrace() {
+	    trace = new LinkedList();
+    	for (int i = 0; i < TRACEDEPTH; i++) {
+    		PVector tl = new PVector(loc.x,loc.y,hue);
+    		trace.add(tl);
+    	}
 	}
 	
 	void mutate() {
@@ -146,8 +193,12 @@ class Individual {
 	}
   
 	void display() {
-    	
-    	// draw tail on each individual
+    	if (TRACING) { displayTrace(); }
+		displayInd();
+  	}
+  	
+  	void displayTrace() {
+  	    // draw tail on each individual
     	float tempx = loc.x;
     	float tempy = loc.y;
     	float temph = hue;
@@ -167,13 +218,14 @@ class Individual {
     		tempy = tl.y;
     		sat = sat - 2;
     	}
-    	
-    	// draw a circle for each individual
+  	}
+  	
+  	void displayInd() {
+  	    // draw a circle for each individual
 		fill(hue,90,100); // 223,227,197
     //	stroke(255,255,255,255);
     	stroke(0,0,100);
     	ellipse(loc.x, loc.y, r*2, r*2);
-    	
   	}
   	
 }
@@ -251,6 +303,13 @@ class Population {
 		for (int i = 0; i < pop.size(); i++) {
 			Individual ind = (Individual) pop.get(i);  
 			ind.update(); 
+		}
+	}
+	
+	void resetTrace() {
+		for (int i = 0; i < pop.size(); i++) {
+			Individual ind = (Individual) pop.get(i);  
+			ind.resetTrace(); 
 		}
 	}
 	

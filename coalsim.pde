@@ -8,7 +8,7 @@ int INITIALCOUNT;
 void setup() {
 
 	CHARGE = 40.0;
-	MAXVEL = 0.15;
+	MAXVEL = 5.0;
 	MAXRAD = 6;
 	DISTBORDER = 25;
 	INITIALCOUNT = 5;
@@ -66,12 +66,11 @@ class Individual {
 		
 		vel = new PVector(0,0);
 		acc = new PVector(0,0);
-		
-		if (growing) { r = r + 0.25; }
-		if (r > MAXRAD) { growing = false; r = MAXRAD; }
-		
-		if (dying) { r = r - 0.25; }
-	//	if (r < 0) { r = 0; }
+			
+		if (growing) { r = r + 0.9; }
+		if (r > 1.3*MAXRAD) { growing = false; }
+		if (r > MAXRAD) { r = r - 0.4; }
+		if (dying) { r = r - 0.4; }
 		
 	}
   

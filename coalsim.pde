@@ -14,19 +14,19 @@ boolean TWODIMEN;
 void setup() {
 
 	CHARGE = 50;
-	MAXVEL = 5;
+	MAXVEL = 2;
 	MAXRAD = 6;
 	DISTBORDER = 25;
-	INITIALCOUNT = 10;
-	WALLMULTIPLIER = 5;
+	INITIALCOUNT = 12;
+	WALLMULTIPLIER = 10;
 	TRACEDEPTH = 200;
 	TRACESTEP = 20;
 	COUNTER = 0;
-	SPLITCHANCE = 0.1;
-	TWODIMEN = true;
+	SPLITCHANCE = 0.2;
+	TWODIMEN = false;
 	
 	size(600, 600);
-//	frameRate(1000);
+//	frameRate(200);
 //	size(screen.width, screen.height);
 	smooth();
 	noStroke();
@@ -37,6 +37,7 @@ void draw() {
 	background(50); // 255
 	population.run();
 	COUNTER++;
+		
 }
 
 // Add a new individual into the population
@@ -54,7 +55,7 @@ class Individual {
 	float r;  // radius
 	boolean growing;
 	boolean dying;
-	ArrayList trace;
+	LinkedList trace;
   
 	Individual(PVector l) {
 		loc = l.get();
@@ -63,21 +64,21 @@ class Individual {
     	r = 0.001;
     	growing = true;
     	dying = false;
-    	trace = new ArrayList();
+    	trace = new LinkedList();
     	for (int i = 0; i < TRACEDEPTH; i++) {
     		PVector tl = loc.get();
     		trace.add(tl);
     	}
 	}
 	
-	Individual(PVector l, ArrayList array) {
+	Individual(PVector l, LinkedList array) {
 		loc = l.get();
     	vel = new PVector(0,0);
     	acc = new PVector(0,0);
     	r = 0.001;
     	growing = true;
     	dying = false;
-    	trace = new ArrayList();
+    	trace = new LinkedList();
     	for (int i = 0; i < array.size(); i++) {
     		PVector tl = (PVector) array.get(i);
     		float x = tl.x;
@@ -122,8 +123,8 @@ class Individual {
 	
 	void extend() {
 		PVector tl = loc.get();
-    	trace.add(0,tl);
-    	trace.remove(trace.size()-1);
+    	trace.add(tl);
+    	trace.remove();
 	}
   
 	void display() {
@@ -131,13 +132,14 @@ class Individual {
     	// draw tail on each individual
     	float tempx = loc.x;
     	float tempy = loc.y;
-    	for (int i = 0; i < trace.size(); i++) {
+		ListIterator itr = trace.listIterator(TRACEDEPTH);
+		while (itr.hasPrevious()) {
     //		float trans = ( (trace.size() - i ) / (float )trace.size()) * 255;
     //		stroke(255,255,255,trans);
     		stroke(200);
-    		PVector tl = (PVector) trace.get(i);
+   			PVector tl = (PVector) itr.previous();
     		if (!TWODIMEN) {
-    			tl.y = tl.y - 1;
+    			tl.y = tl.y - 0.75;
     		}
     		line(tempx, tempy, tl.x, tl.y);
     		tempx = tl.x;

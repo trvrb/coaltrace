@@ -9,6 +9,7 @@ int TRACEDEPTH;
 int TRACESTEP;
 int COUNTER;
 float SPLITCHANCE;
+float MUTCHANCE;
 boolean TWODIMEN;
 float INDHUE;
 
@@ -24,6 +25,7 @@ void setup() {
 	TRACESTEP = 20; // 20
 	COUNTER = 0;
 	SPLITCHANCE = 0.2;  // 0.2
+	MUTCHANCE = 0.1;
 	TWODIMEN = true;
 	INDHUE = 95;
 	
@@ -58,8 +60,9 @@ class Individual {
 	float r;  // radius
 	boolean growing;
 	boolean dying;
+	float hue;
 	LinkedList trace;
-  
+
 	Individual(PVector l) {
 		loc = l.get();
     	vel = new PVector(0,0);
@@ -67,6 +70,8 @@ class Individual {
     	r = 0.001;
     	growing = true;
     	dying = false;
+  		hue = random(0,100);  	
+  
     	trace = new LinkedList();
     	for (int i = 0; i < TRACEDEPTH; i++) {
     		PVector tl = loc.get();
@@ -74,19 +79,21 @@ class Individual {
     	}
 	}
 	
-	Individual(PVector l, LinkedList array) {
+	Individual(PVector l, Float h, LinkedList array) {
 		loc = l.get();
     	vel = new PVector(0,0);
     	acc = new PVector(0,0);
     	r = 0.001;
     	growing = true;
     	dying = false;
+    	hue = h;
     	trace = new LinkedList();
     	for (int i = 0; i < array.size(); i++) {
     		PVector tl = (PVector) array.get(i);
     		float x = tl.x;
     		float y = tl.y;
-    		trace.add(new PVector(x,y));
+    		float z = tl.z;
+    		trace.add(new PVector(x,y,z));
     	}
 	}	
   
@@ -112,6 +119,7 @@ class Individual {
 		if (dying) { r = r - 0.4; }
 		
 		reset();
+		mutate();
 	
 		if (COUNTER % TRACESTEP == 0) {
 			extend();
@@ -125,9 +133,16 @@ class Individual {
 	}
 	
 	void extend() {
-		PVector tl = loc.get();
+	//	PVector tl = loc.get();
+    	PVector tl = new PVector(loc.x,loc.y,hue);
     	trace.add(tl);
     	trace.remove();
+	}
+	
+	void mutate() {
+		if (random(0,100) < MUTCHANCE) {
+			hue = random(0,100);
+		}
 	}
   
 	void display() {
@@ -135,7 +150,8 @@ class Individual {
     	// draw tail on each individual
     	float tempx = loc.x;
     	float tempy = loc.y;
-    	float col = 100;
+    	float temph = hue;
+    	float sat = 100;
 		ListIterator itr = trace.listIterator(TRACEDEPTH);
 		while (itr.hasPrevious()) {
     //		float trans = ( (trace.size() - i ) / (float )trace.size()) * 255;
@@ -144,15 +160,16 @@ class Individual {
     		if (!TWODIMEN) {
     			tl.y = tl.y - 0.75;
     		}
-    		stroke(INDHUE,col,100,col);
+    //		stroke(tl.z,sat,100,sat);
+    		stroke(tl.z,100,100,sat);
     		line(tempx, tempy, tl.x, tl.y);
     		tempx = tl.x;
     		tempy = tl.y;
-    		col = col - 2;
+    		sat = sat - 2;
     	}
     	
     	// draw a circle for each individual
-		fill(INDHUE,90,100); // 223,227,197
+		fill(hue,90,100); // 223,227,197
     //	stroke(255,255,255,255);
     	stroke(0,0,100);
     	ellipse(loc.x, loc.y, r*2, r*2);
@@ -198,7 +215,7 @@ class Population {
 		Individual ind = (Individual) pop.get(rand);
 		float newx = ind.loc.x + random(-1,1);
 		float newy = ind.loc.y + random(-1,1);
-		pop.add(new Individual(new PVector(newx,newy), ind.trace ));
+		pop.add(new Individual(new PVector(newx,newy), ind.hue, ind.trace ));
 		
 	}
 	

@@ -8,7 +8,7 @@ int INITIALCOUNT;
 void setup() {
 
 	CHARGE = 40.0;
-	MAXVEL = 5.0;
+	MAXVEL = 0.5;
 	MAXRAD = 6;
 	DISTBORDER = 25;
 	INITIALCOUNT = 5;
@@ -28,9 +28,9 @@ void draw() {
 
 // Add a new individual into the population
 void mousePressed() {
-//	population.addIndividual(new Individual(new PVector(mouseX,mouseY)));
-	population.die();
-	population.replicate();
+	population.addIndividual(new Individual(new PVector(mouseX,mouseY)));
+//	population.die();
+//	population.replicate();
 }
 
 class Individual {
@@ -62,7 +62,7 @@ class Individual {
 		vel.x = constrain(vel.x,-MAXVEL,MAXVEL);	// contrains speed
 		
 		loc.add(vel);          						// update location
-		loc.y = height-DISTBORDER;					// constrains to horizontal line	
+	//	loc.y = height-DISTBORDER;					// constrains to horizontal line	
 		
 		vel = new PVector(0,0);
 		acc = new PVector(0,0);
@@ -191,6 +191,7 @@ class Population {
 			
 			// exclude from walls
 			ind.loc.x = constrain(ind.loc.x, ind.r*2, width-ind.r*2);
+			ind.loc.y = constrain(ind.loc.y, ind.r*2, height-ind.r*2);
 					
 		}
 		
@@ -231,7 +232,19 @@ class Population {
 			diff = new PVector(-1,0);
 			distance = width-ind.loc.x;
 			diff.mult( 10*coulomb(distance) );
-			push.add(diff);			
+			push.add(diff);		
+			
+			// repel from top wall
+			diff = new PVector(0,1);
+			distance = ind.loc.y-0;
+			diff.mult( 10*coulomb(distance) );
+			push.add(diff);
+
+			// repel from bottom wall
+			diff = new PVector(0,-1);
+			distance = height-ind.loc.x;
+			diff.mult( 10*coulomb(distance) );
+			push.add(diff);					
 				
 			// forces accelerate the individual			
 			ind.acc.add(push);

@@ -14,17 +14,19 @@ float INDHUE;
 boolean LOOPING;
 boolean MUTATION;
 boolean TRACING;
+boolean DYNAMICS;
 
 Population population;
 
 void setup() {
 
-	TWODIMEN = true;
-	MUTATION = true;
+	TWODIMEN = false;
+	MUTATION = false;
 	TRACING = true;
+	DYNAMICS = false;
 
-	CHARGE = 50;
-	MAXVEL = 2;
+	CHARGE = 50; // 50
+	MAXVEL = 2; // 2
 	MAXRAD = 6;
 	DISTBORDER = 25;
 	INITIALCOUNT = 12; // 12
@@ -33,13 +35,13 @@ void setup() {
 	TRACESTEP = 20; // 20
 	COUNTER = 0;
 	SPLITCHANCE = 0.2;  // 0.2
-	MUTCHANCE = 0.1;
+//	MUTCHANCE = 0.01;
 	INDHUE = 95;
 	LOOPING = true;
 	
 	size(600, 600);
 	colorMode(HSB,100);
-//	frameRate(200);
+	frameRate(1000);
 //	size(screen.width, screen.height);
 	smooth();
 	noStroke();
@@ -50,6 +52,7 @@ void draw() {
 	background(0,0,20); // 255
 	population.run();
 	COUNTER++;
+	MUTCHANCE = 1 / (float) population.size();
 		
 }
 
@@ -79,7 +82,25 @@ void keyPressed() {
 			population.resetTrace();
 			TWODIMEN = true; 
 		}
-  	} 	
+  	} 
+  	if (key == 'm') {
+		if (MUTATION) { MUTATION = false; }
+		else if (!MUTATION) { MUTATION = true; }
+  	}   
+  	if (key == 't') {
+		if (TRACING) { TRACING = false; }
+		else if (!TRACING) { TRACING = true; }
+  	} 
+  	if (key == 'd') {
+		if (DYNAMICS) { DYNAMICS = false; }
+		else if (!DYNAMICS) { DYNAMICS = true; }
+  	}  
+	if (keyCode == UP) { 
+		population.replicate();
+  	} 
+	if (keyCode == DOWN) {
+		population.die();
+  	}   	
 }
 
 class Individual {
@@ -249,7 +270,7 @@ class Population {
 
 	void run() {
 		
-		splitstep();
+		if (DYNAMICS) { splitstep(); }
 		repulsion();
 		update();
 		exclusion();
@@ -257,29 +278,43 @@ class Population {
 		display();
 		
 	}
+	
+	int size() {
+		return pop.size();
+	}
 
   	void addIndividual(Individual ind) {
 		pop.add(ind);
 	}
 
 	void replicate() {
-		int rand = int(random(0,pop.size()));
-		Individual ind = (Individual) pop.get(rand);
-		float newx = ind.loc.x + random(-1,1);
-		float newy = ind.loc.y + random(-1,1);
-		pop.add(new Individual(new PVector(newx,newy), ind.hue, ind.trace ));
+		if (pop.size() > 0) {
+			int rand = int(random(0,pop.size()));
+			Individual ind = (Individual) pop.get(rand);
+			float newx = ind.loc.x + random(-1,1);
+			float newy = ind.loc.y + random(-1,1);
+			pop.add(new Individual(new PVector(newx,newy), ind.hue, ind.trace ));
+			
+		}
+		else {
+			float w = width/2 + random(-1,1);
+			float h = height/2 + random(-1,1);
+			population.addIndividual(new Individual(new PVector(w,h)));
+		}
 		
 	}
 	
 	void die() {
-		int rand = int(random(0,pop.size()));
-		Individual ind = (Individual) pop.get(rand);
-		while (ind.dying) {									// pick another
-			rand = int(random(0,pop.size()));
-			ind = (Individual) pop.get(rand);
+		if (pop.size() > 0) {
+			int rand = int(random(0,pop.size()));
+			Individual ind = (Individual) pop.get(rand);
+			while (ind.dying) {									// pick another
+				rand = int(random(0,pop.size()));
+				ind = (Individual) pop.get(rand);
+			}
+			ind.dying = true;
+			ind.growing = false;
 		}
-		ind.dying = true;
-		ind.growing = false;
 	}
 	
 	void splitstep() {

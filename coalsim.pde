@@ -5,15 +5,21 @@ float MAXRAD;
 float DISTBORDER;
 int INITIALCOUNT;
 float WALLMULTIPLIER;
+int TRACEDEPTH;
+int TRACESTEP;
+int COUNTER;
 
 void setup() {
 
-	CHARGE = 0.5;
-	MAXVEL = 1;
+	CHARGE = 50;
+	MAXVEL = 5;
 	MAXRAD = 6;
 	DISTBORDER = 25;
-	INITIALCOUNT = 100;
+	INITIALCOUNT = 10;
 	WALLMULTIPLIER = 5;
+	TRACEDEPTH = 100;
+	TRACESTEP = 10;
+	COUNTER = 0;
 	
 	size(640, 360);
 //	frameRate(1000);
@@ -26,13 +32,14 @@ void setup() {
 void draw() {
 	background(50); // 255
 	population.run();
+	COUNTER++;
 }
 
 // Add a new individual into the population
 void mousePressed() {
-	population.addIndividual(new Individual(new PVector(mouseX,mouseY)));
-//	population.die();
-//	population.replicate();
+//	population.addIndividual(new Individual(new PVector(mouseX,mouseY)));
+	population.die();
+	population.replicate();
 }
 
 class Individual {
@@ -43,6 +50,7 @@ class Individual {
 	float r;  // radius
 	boolean growing;
 	boolean dying;
+	ArrayList trace;
   
 	Individual(PVector l) {
 		loc = l.get();
@@ -51,6 +59,11 @@ class Individual {
     	r = 0.001;
     	growing = true;
     	dying = false;
+    	trace = new ArrayList();
+    	for (int i = 0; i < TRACEDEPTH; i++) {
+    		PVector tl = loc.get();
+    		trace.add(tl);
+    	}
 	}
   
 	void run() {
@@ -66,13 +79,16 @@ class Individual {
 		loc.add(vel);          						// update location
 	//	loc.y = height-DISTBORDER;					// constrains to horizontal line	
 		
-//		vel = new PVector(0,0);
-//		acc = new PVector(0,0);
-			
 		if (growing) { r = r + 0.9; }
 		if (r > 1.3*MAXRAD) { growing = false; }
 		if (r > MAXRAD) { r = r - 0.4; }
 		if (dying) { r = r - 0.4; }
+		
+		reset();
+	
+		if (COUNTER % TRACESTEP == 0) {
+			extend();
+		}
 		
 	}
 	
@@ -80,11 +96,27 @@ class Individual {
 		vel = new PVector(0,0);
 		acc = new PVector(0,0);
 	}
+	
+	void extend() {
+		PVector tl = loc.get();
+    	trace.add(0,tl);
+    	trace.remove(trace.size()-1);
+	}
   
 	void display() {
     	fill(150); // 223,227,197
-    	stroke(255); // 50
+    	stroke(255,255,255,255);
     	ellipse(loc.x, loc.y, r*2, r*2);
+    	float tempx = loc.x;
+    	float tempy = loc.y;
+    	for (int i = 0; i < trace.size(); i++) {
+    		float trans = ( (trace.size() - i ) / (float )trace.size()) * 255;
+    		stroke(255,255,255,trans);
+    		PVector tl = (PVector) trace.get(i);
+    		line(tempx, tempy, tl.x, tl.y);
+    		tempx = tl.x;
+    		tempy = tl.y;
+    	}
   	}
   	
 }
@@ -165,56 +197,18 @@ class Population {
 		
 			Individual ind = (Individual) pop.get(i);
 			
-			// exclude from other Individuals
-			for (int j = 0; j < pop.size(); j++) {
+			// repel from other Individuals
+	/*		for (int j = 0 ; j < pop.size(); j++) {
 				if (i != j) {
-			
 					Individual jnd = (Individual) pop.get(j);
-					
-					// Calculate vector pointing away from neighbor
-					PVector idiff = PVector.sub(ind.loc,jnd.loc);
-					idiff.normalize();
-					PVector jdiff = PVector.sub(jnd.loc,ind.loc);
-					jdiff.normalize();			
-					
-					// calculate overlap
 					float overlap = ind.r + jnd.r - PVector.dist(ind.loc,jnd.loc);
-					
-					// directly move
 					if (overlap > 0) {
 						ind.reset();
 						jnd.reset();
-			//			idiff.mult(overlap/2);
-			//			jdiff.mult(overlap/2);
-			//			ind.loc.add(idiff);
-			//			jnd.loc.add(jdiff);
 					}
-		/*			
-					if (ind.loc.x < jnd.loc.x) {			// ind is to the left of jnd
-					
-						// test if the right side of ind is right of left side of jnd
-						float overlap = (ind.loc.x + ind.r) - (jnd.loc.x - jnd.r);
-						if (overlap > 0) {
-							ind.loc.x = ind.loc.x - overlap/2;
-							jnd.loc.x = jnd.loc.x + overlap/2;
-						}
-					
-					}
-					
-					if (ind.loc.x > jnd.loc.x) {			// ind is to the right of jnd
-					
-						// test if the left side of ind is left of right side of jnd
-						float overlap = (jnd.loc.x + ind.r) - (ind.loc.x - jnd.r);
-						if (overlap > 0) {
-							ind.loc.x = ind.loc.x + overlap/2;
-							jnd.loc.x = jnd.loc.x - overlap/2;
-						}
-					
-					}					
-			*/			
 				}
 			}
-			
+	*/		
 			// exclude from walls
 			ind.loc.x = constrain(ind.loc.x, ind.r*2, width-ind.r*2);
 			ind.loc.y = constrain(ind.loc.y, ind.r*2, height-ind.r*2);

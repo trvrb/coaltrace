@@ -4,14 +4,16 @@ float MAXVEL;
 float MAXRAD;
 float DISTBORDER;
 int INITIALCOUNT;
+float WALLMULTIPLIER;
 
 void setup() {
 
-	CHARGE = 40.0;
-	MAXVEL = 0.5;
+	CHARGE = 0.5;
+	MAXVEL = 1;
 	MAXRAD = 6;
 	DISTBORDER = 25;
-	INITIALCOUNT = 5;
+	INITIALCOUNT = 100;
+	WALLMULTIPLIER = 5;
 	
 	size(640, 360);
 //	frameRate(1000);
@@ -44,7 +46,6 @@ class Individual {
   
 	Individual(PVector l) {
 		loc = l.get();
-//    	vel = new PVector(random(-1,1),random(-1,1));
     	vel = new PVector(0,0);
     	acc = new PVector(0,0);
     	r = 0.001;
@@ -60,18 +61,24 @@ class Individual {
 	void update() {
 		vel.add(acc);          						// update velocity
 		vel.x = constrain(vel.x,-MAXVEL,MAXVEL);	// contrains speed
+		vel.y = constrain(vel.y,-MAXVEL,MAXVEL);
 		
 		loc.add(vel);          						// update location
 	//	loc.y = height-DISTBORDER;					// constrains to horizontal line	
 		
-		vel = new PVector(0,0);
-		acc = new PVector(0,0);
+//		vel = new PVector(0,0);
+//		acc = new PVector(0,0);
 			
 		if (growing) { r = r + 0.9; }
 		if (r > 1.3*MAXRAD) { growing = false; }
 		if (r > MAXRAD) { r = r - 0.4; }
 		if (dying) { r = r - 0.4; }
 		
+	}
+	
+	void reset() {
+		vel = new PVector(0,0);
+		acc = new PVector(0,0);
 	}
   
 	void display() {
@@ -164,6 +171,25 @@ class Population {
 			
 					Individual jnd = (Individual) pop.get(j);
 					
+					// Calculate vector pointing away from neighbor
+					PVector idiff = PVector.sub(ind.loc,jnd.loc);
+					idiff.normalize();
+					PVector jdiff = PVector.sub(jnd.loc,ind.loc);
+					jdiff.normalize();			
+					
+					// calculate overlap
+					float overlap = ind.r + jnd.r - PVector.dist(ind.loc,jnd.loc);
+					
+					// directly move
+					if (overlap > 0) {
+						ind.reset();
+						jnd.reset();
+			//			idiff.mult(overlap/2);
+			//			jdiff.mult(overlap/2);
+			//			ind.loc.add(idiff);
+			//			jnd.loc.add(jdiff);
+					}
+		/*			
 					if (ind.loc.x < jnd.loc.x) {			// ind is to the left of jnd
 					
 						// test if the right side of ind is right of left side of jnd
@@ -185,7 +211,7 @@ class Population {
 						}
 					
 					}					
-						
+			*/			
 				}
 			}
 			
@@ -225,25 +251,25 @@ class Population {
 			// repel from left wall
 			diff = new PVector(1,0);
 			distance = ind.loc.x-0;
-			diff.mult( 10*coulomb(distance) );
+			diff.mult( WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);
 
 			// repel from right wall
 			diff = new PVector(-1,0);
 			distance = width-ind.loc.x;
-			diff.mult( 10*coulomb(distance) );
+			diff.mult( WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);		
 			
 			// repel from top wall
 			diff = new PVector(0,1);
 			distance = ind.loc.y-0;
-			diff.mult( 10*coulomb(distance) );
+			diff.mult( WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);
 
 			// repel from bottom wall
 			diff = new PVector(0,-1);
-			distance = height-ind.loc.x;
-			diff.mult( 10*coulomb(distance) );
+			distance = height-ind.loc.y;
+			diff.mult( WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);					
 				
 			// forces accelerate the individual			

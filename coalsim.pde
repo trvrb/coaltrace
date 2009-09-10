@@ -8,6 +8,8 @@ float WALLMULTIPLIER;
 int TRACEDEPTH;
 int TRACESTEP;
 int COUNTER;
+float SPLITCHANCE;
+boolean TWODIMEN;
 
 void setup() {
 
@@ -17,11 +19,13 @@ void setup() {
 	DISTBORDER = 25;
 	INITIALCOUNT = 10;
 	WALLMULTIPLIER = 5;
-	TRACEDEPTH = 100;
-	TRACESTEP = 10;
+	TRACEDEPTH = 200;
+	TRACESTEP = 20;
 	COUNTER = 0;
+	SPLITCHANCE = 0.1;
+	TWODIMEN = true;
 	
-	size(640, 360);
+	size(600, 600);
 //	frameRate(1000);
 //	size(screen.width, screen.height);
 	smooth();
@@ -65,6 +69,22 @@ class Individual {
     		trace.add(tl);
     	}
 	}
+	
+	Individual(PVector l, ArrayList array) {
+		loc = l.get();
+    	vel = new PVector(0,0);
+    	acc = new PVector(0,0);
+    	r = 0.001;
+    	growing = true;
+    	dying = false;
+    	trace = new ArrayList();
+    	for (int i = 0; i < array.size(); i++) {
+    		PVector tl = (PVector) array.get(i);
+    		float x = tl.x;
+    		float y = tl.y;
+    		trace.add(new PVector(x,y));
+    	}
+	}	
   
 	void run() {
 		update();
@@ -77,7 +97,10 @@ class Individual {
 		vel.y = constrain(vel.y,-MAXVEL,MAXVEL);
 		
 		loc.add(vel);          						// update location
-	//	loc.y = height-DISTBORDER;					// constrains to horizontal line	
+		
+		if (!TWODIMEN) {
+			loc.y = height-DISTBORDER;					// constrains to horizontal line	
+		}
 		
 		if (growing) { r = r + 0.9; }
 		if (r > 1.3*MAXRAD) { growing = false; }
@@ -104,19 +127,29 @@ class Individual {
 	}
   
 	void display() {
-    	fill(150); // 223,227,197
-    	stroke(255,255,255,255);
-    	ellipse(loc.x, loc.y, r*2, r*2);
+    	
+    	// draw tail on each individual
     	float tempx = loc.x;
     	float tempy = loc.y;
     	for (int i = 0; i < trace.size(); i++) {
-    		float trans = ( (trace.size() - i ) / (float )trace.size()) * 255;
-    		stroke(255,255,255,trans);
+    //		float trans = ( (trace.size() - i ) / (float )trace.size()) * 255;
+    //		stroke(255,255,255,trans);
+    		stroke(200);
     		PVector tl = (PVector) trace.get(i);
+    		if (!TWODIMEN) {
+    			tl.y = tl.y - 1;
+    		}
     		line(tempx, tempy, tl.x, tl.y);
     		tempx = tl.x;
     		tempy = tl.y;
     	}
+    	
+    	// draw a circle for each individual
+		fill(150); // 223,227,197
+    //	stroke(255,255,255,255);
+    	stroke(255);
+    	ellipse(loc.x, loc.y, r*2, r*2);
+    	
   	}
   	
 }
@@ -127,7 +160,7 @@ class Population {
   	ArrayList pop; // An arraylist for all the individuals
 
   	Population() {
-    	pop = new ArrayList(); // Initialize the arraylist
+    	pop = new ArrayList(); 
     	for (int i=0; i < INITIALCOUNT; i++) {
     		pop.add(new Individual(new PVector(random(0,width),random(0,height))));
     	}
@@ -135,6 +168,7 @@ class Population {
 
 	void run() {
 		
+		splitstep();
 		repulsion();
 		update();
 		exclusion();
@@ -152,7 +186,7 @@ class Population {
 		Individual ind = (Individual) pop.get(rand);
 		float newx = ind.loc.x + random(-1,1);
 		float newy = ind.loc.y + random(-1,1);
-		pop.add(new Individual(new PVector(newx,newy)));
+		pop.add(new Individual(new PVector(newx,newy), ind.trace ));
 		
 	}
 	
@@ -165,6 +199,13 @@ class Population {
 		}
 		ind.dying = true;
 		ind.growing = false;
+	}
+	
+	void splitstep() {
+		if (random(0,1) < SPLITCHANCE) {
+			die();
+			replicate();
+		}
 	}
 
 	void cleanup() {

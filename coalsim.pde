@@ -10,6 +10,7 @@ int TRACESTEP;
 int COUNTER;
 float SPLITCHANCE;
 boolean TWODIMEN;
+float INDHUE;
 
 void setup() {
 
@@ -17,15 +18,17 @@ void setup() {
 	MAXVEL = 2;
 	MAXRAD = 6;
 	DISTBORDER = 25;
-	INITIALCOUNT = 12;
+	INITIALCOUNT = 12; // 12
 	WALLMULTIPLIER = 10;
-	TRACEDEPTH = 200;
-	TRACESTEP = 20;
+	TRACEDEPTH = 200; // 200
+	TRACESTEP = 20; // 20
 	COUNTER = 0;
-	SPLITCHANCE = 0.2;
-	TWODIMEN = false;
+	SPLITCHANCE = 0.2;  // 0.2
+	TWODIMEN = true;
+	INDHUE = 95;
 	
 	size(600, 600);
+	colorMode(HSB,100);
 //	frameRate(200);
 //	size(screen.width, screen.height);
 	smooth();
@@ -34,7 +37,7 @@ void setup() {
 }
 
 void draw() {
-	background(50); // 255
+	background(0,0,20); // 255
 	population.run();
 	COUNTER++;
 		
@@ -132,24 +135,26 @@ class Individual {
     	// draw tail on each individual
     	float tempx = loc.x;
     	float tempy = loc.y;
+    	float col = 100;
 		ListIterator itr = trace.listIterator(TRACEDEPTH);
 		while (itr.hasPrevious()) {
     //		float trans = ( (trace.size() - i ) / (float )trace.size()) * 255;
     //		stroke(255,255,255,trans);
-    		stroke(200);
    			PVector tl = (PVector) itr.previous();
     		if (!TWODIMEN) {
     			tl.y = tl.y - 0.75;
     		}
+    		stroke(INDHUE,col,100,col);
     		line(tempx, tempy, tl.x, tl.y);
     		tempx = tl.x;
     		tempy = tl.y;
+    		col = col - 2;
     	}
     	
     	// draw a circle for each individual
-		fill(150); // 223,227,197
+		fill(INDHUE,90,100); // 223,227,197
     //	stroke(255,255,255,255);
-    	stroke(255);
+    	stroke(0,0,100);
     	ellipse(loc.x, loc.y, r*2, r*2);
     	
   	}
@@ -164,7 +169,12 @@ class Population {
   	Population() {
     	pop = new ArrayList(); 
     	for (int i=0; i < INITIALCOUNT; i++) {
-    		pop.add(new Individual(new PVector(random(0,width),random(0,height))));
+    		float w = random(0,width);
+    		float h = random(0,height);
+    		if (!TWODIMEN) {
+    			h = height-DISTBORDER;
+    		}
+    		pop.add(new Individual(new PVector(w,h)));
     	}
   	}
 

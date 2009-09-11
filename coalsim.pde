@@ -18,6 +18,8 @@ boolean DYNAMICS;
 
 Population population;
 
+PFont fontA;
+
 void setup() {
 
 	TWODIMEN = false;
@@ -25,7 +27,7 @@ void setup() {
 	TRACING = true;
 	DYNAMICS = false;
 
-	CHARGE = 50; // 50
+	CHARGE = 30; // 50
 	MAXVEL = 2; // 2
 	MAXRAD = 6;
 	DISTBORDER = 25;
@@ -41,11 +43,15 @@ void setup() {
 	
 	size(600, 600);
 	colorMode(HSB,100);
-	frameRate(1000);
+//	frameRate(1000);
 //	size(screen.width, screen.height);
 	smooth();
 	noStroke();
 	population = new Population();	// begins with a single individual
+	
+	fontA = loadFont("GillSans-48.vlw");
+	textFont(fontA, 20);
+	
 }
 
 void draw() {
@@ -53,6 +59,16 @@ void draw() {
 	population.run();
 	COUNTER++;
 	MUTCHANCE = 1 / (float) population.size();
+	
+//	float fps = 1000 * frameCount / (float) millis();
+//	fill(0,0,100);
+//	text(fps, 10, 20);
+	
+//	if (frameCount == 100) {
+//		fill(0,0,100);
+//		text(millis(), 10, 20);
+//		noLoop();
+//	}
 		
 }
 
@@ -181,7 +197,7 @@ class Individual {
 			mutate();
 		}
 	
-		if (COUNTER % TRACESTEP == 0) {
+		if (frameCount % TRACESTEP == 0) {
 			extendTrace();
 		}
 		

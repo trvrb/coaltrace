@@ -6,9 +6,8 @@ int INITIALCOUNT;
 float WALLMULTIPLIER;
 int TRACEDEPTH;
 int TRACESTEP;
-int COUNTER;
 float SPLITCHANCE;
-float MUTCHANCE;
+float MU;
 boolean TWODIMEN;
 float INDHUE;
 boolean LOOPING;
@@ -17,27 +16,25 @@ boolean TRACING;
 boolean DYNAMICS;
 
 Population population;
-
 PFont fontA;
 
 void setup() {
 
 	TWODIMEN = false;
 	MUTATION = false;
-	TRACING = true;
+	TRACING = false;
 	DYNAMICS = false;
 
 	CHARGE = 30; // 50
 	MAXVEL = 2; // 2
 	MAXRAD = 6;
 	DISTBORDER = 25;
-	INITIALCOUNT = 12; // 12
+	INITIALCOUNT = 1; // 12
 	WALLMULTIPLIER = 10;
-	TRACEDEPTH = 300; // 200
+	TRACEDEPTH = 50; // 300
 	TRACESTEP = 20; // 20
-	COUNTER = 0;
 	SPLITCHANCE = 0.2;  // 0.2
-//	MUTCHANCE = 0.01;
+	MU = 1;
 	INDHUE = 95;
 	LOOPING = true;
 	
@@ -57,18 +54,10 @@ void setup() {
 void draw() {
 	background(0,0,20); // 255
 	population.run();
-	COUNTER++;
-	MUTCHANCE = 1 / (float) population.size();
 	
-//	float fps = 1000 * frameCount / (float) millis();
-//	fill(0,0,100);
-//	text(fps, 10, 20);
 	
-//	if (frameCount == 100) {
-//		fill(0,0,100);
-//		text(millis(), 10, 20);
-//		noLoop();
-//	}
+	fill(0,0,100);
+	text(int(frameRate), 10, 25);
 		
 }
 
@@ -116,7 +105,7 @@ void keyPressed() {
   	} 
 	if (keyCode == DOWN) {
 		population.die();
-  	}   	
+  	}   
 }
 
 class Individual {
@@ -224,7 +213,8 @@ class Individual {
 	}
 	
 	void mutate() {
-		if (random(0,100) < MUTCHANCE) {
+		float mutchance = MU*(1 / (float) population.size());
+		if (random(0,100) < mutchance) {
 			hue = random(0,100);
 		}
 	}
@@ -239,28 +229,25 @@ class Individual {
     	float tempx = loc.x;
     	float tempy = loc.y;
     	float temph = hue;
-    	float sat = 100;
+  //  	float sat = 100;
 		ListIterator itr = trace.listIterator(TRACEDEPTH);
 		while (itr.hasPrevious()) {
-    //		float trans = ( (trace.size() - i ) / (float )trace.size()) * 255;
-    //		stroke(255,255,255,trans);
    			PVector tl = (PVector) itr.previous();
     		if (!TWODIMEN) {
     			tl.y = tl.y - 0.75;
     		}
-    //		stroke(tl.z,sat,100,sat);
-    		stroke(tl.z,100,100,sat);
+    //		stroke(tl.z,100,100,sat);			// 150% slower than with transparency
+    		stroke(tl.z,100,100);
     		line(tempx, tempy, tl.x, tl.y);
     		tempx = tl.x;
     		tempy = tl.y;
-    		sat = sat - 2;
+    //		sat = sat - 100 / (float) TRACEDEPTH;
     	}
   	}
   	
   	void displayInd() {
   	    // draw a circle for each individual
 		fill(hue,90,100); // 223,227,197
-    //	stroke(255,255,255,255);
     	stroke(0,0,100);
     	ellipse(loc.x, loc.y, r*2, r*2);
   	}
@@ -321,7 +308,15 @@ class Population {
 	}
 	
 	void die() {
-		if (pop.size() > 0) {
+		// how many are not dying
+		int livecount = 0;
+		for (int i = 0; i < pop.size(); i++) {
+			Individual ind = (Individual) pop.get(i); 
+			if (!ind.dying) {
+				livecount++;
+			}
+		}
+		if (livecount > 0) {
 			int rand = int(random(0,pop.size()));
 			Individual ind = (Individual) pop.get(rand);
 			while (ind.dying) {									// pick another
@@ -365,9 +360,15 @@ class Population {
 	}
 	
 	void display() {
+		if (TRACING) {
+			for (int i = 0; i < pop.size(); i++) {
+				Individual ind = (Individual) pop.get(i);  
+				ind.displayTrace(); 
+			}
+		}
 		for (int i = 0; i < pop.size(); i++) {
 			Individual ind = (Individual) pop.get(i);  
-			ind.display(); 
+			ind.displayInd(); 
 		}
 	}
 	

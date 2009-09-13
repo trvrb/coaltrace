@@ -1,14 +1,15 @@
-// measure time in units of frames
+// measure time in units of frames, report in units of seconds
 // each frame a Poisson number of birth-death events occur
+// and a Poisson number of mutations occur
 
 float CHARGE;
 float MAXVEL;
 float MAXRAD;
-float DISTBORDER;
+float BASELINE;
 float WALLMULTIPLIER;
 int TRACEDEPTH;
 int TRACESTEP;
-float SPLITCHANCE;
+float PUSHBACK;
 int N;
 float MU;
 float GEN;
@@ -35,20 +36,20 @@ void setup() {
 	CHARGE = 30; // 50
 	MAXVEL = 2; // 2
 	MAXRAD = 6;
-	DISTBORDER = 25;
-	WALLMULTIPLIER = 10;
+	BASELINE = 25;
+	WALLMULTIPLIER = 20;
 	TRACEDEPTH = 50; // 300
 	TRACESTEP = 20; // 20
-	SPLITCHANCE = 0.2;  // 0.2
+	PUSHBACK = 0.75;
 	
-	N = 12;
-	MU = 1;
+	N = 2;
+	MU = 0.1;
 	GEN = 60.0;			// frames per generation
 	
 	INDHUE = 95;
 	LOOPING = true;
 	
-	size(600, 600);
+	size(800, 600);
 	colorMode(HSB,100);
 //	frameRate(1000);
 //	size(screen.width, screen.height);
@@ -69,6 +70,7 @@ void draw() {
 
 void stats() {
 	fill(0,0,100);
+	stroke(0,0,100);
 	textFont(fontN, 20);
 	String str;
 //	text(int(frameRate), 10, 25);
@@ -79,6 +81,19 @@ void stats() {
 	// generation time
 	float rate = round(frameRate * (1/(float)GEN) * 10.0)/10.0;
 	text(rate + " gen / sec", 10, 45);
+
+	textFont(fontN, 12);
+	float t = 0;		
+	if (N>0) { line(width-34,height-BASELINE,width-10,height-BASELINE); }
+	for (int k = N; k > 1; k--) {
+		float mod = coalInterval(k);
+		if (mod > 10) { 
+			if (k < 10) { text(k,width-24,height-t-mod/2-BASELINE+5); }
+			else { text(k,width-27.5,height-t-mod/2-BASELINE+5); }
+		}
+		t += mod;
+		line(width-34,height-t-BASELINE,width-10,height-t-BASELINE);	
+	}
 	
 }
 
@@ -164,7 +179,7 @@ class Individual {
   		else { hue = INDHUE; }
   		
   		if (!TWODIMEN) {
-			loc.y = height-DISTBORDER;					// constrains to horizontal line	
+			loc.y = height-BASELINE;					// constrains to horizontal line	
 		}
   
     	trace = new LinkedList();
@@ -191,12 +206,7 @@ class Individual {
     		trace.add(new PVector(x,y,z));
     	}
 	}	
-  
-	void run() {
-		update();
-		display();
-	}
-  
+    
 	void update() {
 		vel.add(acc);          						// update velocity
 		vel.x = constrain(vel.x,-MAXVEL,MAXVEL);	// contrains speed
@@ -205,7 +215,7 @@ class Individual {
 		loc.add(vel);          						// update location
 		
 		if (!TWODIMEN) {
-			loc.y = height-DISTBORDER;					// constrains to horizontal line	
+			loc.y = height-BASELINE;				// constrains to horizontal line	
 		}
 		
 		if (growing) { r = r + 0.9; }
@@ -215,10 +225,6 @@ class Individual {
 		
 		reset();
 		
-		if (MUTATION) {
-			mutate();
-		}
-	
 		if (frameCount % TRACESTEP == 0) {
 			extendTrace();
 		}
@@ -231,7 +237,6 @@ class Individual {
 	}
 	
 	void extendTrace() {
-	//	PVector tl = loc.get();
     	PVector tl = new PVector(loc.x,loc.y,hue);
     	trace.add(tl);
     	trace.remove();
@@ -246,10 +251,7 @@ class Individual {
 	}
 	
 	void mutate() {
-		float mutchance = MU*(1 / (float) population.size());
-		if (random(0,100) < mutchance) {
-			hue = random(0,100);
-		}
+		hue = random(0,100);
 	}
   
 	void display() {
@@ -267,10 +269,11 @@ class Individual {
 		while (itr.hasPrevious()) {
    			PVector tl = (PVector) itr.previous();
     		if (!TWODIMEN) {
-    			tl.y = tl.y - 0.75;
+    			tl.y = tl.y - PUSHBACK;
     		}
     //		stroke(tl.z,100,100,sat);			// 150% slower than with transparency
     		stroke(tl.z,100,100);
+    //		ellipse(tl.x, tl.y, 2, 2);
     		line(tempx, tempy, tl.x, tl.y);
     		tempx = tl.x;
     		tempy = tl.y;
@@ -298,7 +301,7 @@ class Population {
     		float w = random(0,width);
     		float h = random(0,height);
     		if (!TWODIMEN) {
-    			h = height-DISTBORDER;
+    			h = height-BASELINE;
     		}
     		pop.add(new Individual(new PVector(w,h)));
     	}
@@ -307,6 +310,7 @@ class Population {
 	void run() {
 		
 		if (DYNAMICS) { splitstep(); }
+		if (MUTATION) { mutate(); }
 		repulsion();
 		update();
 		exclusion();
@@ -370,6 +374,16 @@ class Population {
 		for (int i = 0; i < events; i++) {
 			die();
 			replicate();
+		}
+	}
+	
+	void mutate() {
+		float popMu = (1/(float)GEN) * (float)N * MU;
+		int events = poissonSample(popMu);
+		for (int i = 0; i < events; i++) {
+			int rand = int(random(0,pop.size()));
+			Individual ind = (Individual) pop.get(rand);
+			ind.mutate();
 		}
 	}
 
@@ -516,4 +530,19 @@ int poissonSample(float lambda) {
 		p *= random(0,1);
 	}
 	return k - 1;
+}
+
+// coalescent intervals calculation, returns number of pixels in interval of k lineages
+// every frame each member of trace is decremented by PUSHBACK pixels
+float coalInterval(int k) {
+
+	// Moran model with overlapping generations, k concurrent lineages
+	float cof = 2.0 / (float) ( (k-1) * k); 
+	float generations = cof * (float) N * 0.5;
+	// converting from generations to frames
+	float frames = generations * GEN;
+	// converting from frames to pixels
+	float pixels = frames * PUSHBACK;
+	
+	return pixels;
 }

@@ -1,40 +1,50 @@
+// measure time in units of frames
+// each frame a Poisson number of birth-death events occur
+
 float CHARGE;
 float MAXVEL;
 float MAXRAD;
 float DISTBORDER;
-int INITIALCOUNT;
 float WALLMULTIPLIER;
 int TRACEDEPTH;
 int TRACESTEP;
 float SPLITCHANCE;
+int N;
 float MU;
+float GEN;
 boolean TWODIMEN;
 float INDHUE;
 boolean LOOPING;
 boolean MUTATION;
 boolean TRACING;
 boolean DYNAMICS;
+boolean STATISTICS;
 
 Population population;
-PFont fontA;
+PFont fontN;
+PFont fontI;
 
 void setup() {
 
 	TWODIMEN = false;
-	MUTATION = false;
-	TRACING = false;
-	DYNAMICS = false;
+	MUTATION = true;
+	TRACING = true;
+	DYNAMICS = true;
+	STATISTICS = true;
 
 	CHARGE = 30; // 50
 	MAXVEL = 2; // 2
 	MAXRAD = 6;
 	DISTBORDER = 25;
-	INITIALCOUNT = 1; // 12
 	WALLMULTIPLIER = 10;
 	TRACEDEPTH = 50; // 300
 	TRACESTEP = 20; // 20
 	SPLITCHANCE = 0.2;  // 0.2
+	
+	N = 12;
 	MU = 1;
+	GEN = 60.0;			// frames per generation
+	
 	INDHUE = 95;
 	LOOPING = true;
 	
@@ -46,19 +56,30 @@ void setup() {
 	noStroke();
 	population = new Population();	// begins with a single individual
 	
-	fontA = loadFont("GillSans-48.vlw");
-	textFont(fontA, 20);
+	fontN = loadFont("GillSans-48.vlw");
+	fontI = loadFont("GillSans-Italic-48.vlw");
 	
 }
 
 void draw() {
 	background(0,0,20); // 255
 	population.run();
-	
-	
+	if (STATISTICS) { stats(); }
+}
+
+void stats() {
 	fill(0,0,100);
-	text(int(frameRate), 10, 25);
-		
+	textFont(fontN, 20);
+	String str;
+//	text(int(frameRate), 10, 25);
+
+	// population size
+	text(N + " individuals",10,25);
+
+	// generation time
+	float rate = round(frameRate * (1/(float)GEN) * 10.0)/10.0;
+	text(rate + " gen / sec", 10, 45);
+	
 }
 
 // Add a new individual into the population
@@ -100,12 +121,24 @@ void keyPressed() {
 		if (DYNAMICS) { DYNAMICS = false; }
 		else if (!DYNAMICS) { DYNAMICS = true; }
   	}  
+  	if (key == 's') {
+		if (STATISTICS) { STATISTICS = false; }
+		else if (!STATISTICS) { STATISTICS = true; }
+  	}    	
 	if (keyCode == UP) { 
 		population.replicate();
+		N++;
   	} 
 	if (keyCode == DOWN) {
-		population.die();
+		boolean success = population.die();
+		if (success) { N--; }
   	}   
+	if (keyCode == RIGHT) { 
+		GEN -= 1.0;
+  	} 
+	if (keyCode == LEFT) { 
+		GEN += 1.0;
+  	}   	
 }
 
 class Individual {
@@ -261,7 +294,7 @@ class Population {
 
   	Population() {
     	pop = new ArrayList(); 
-    	for (int i=0; i < INITIALCOUNT; i++) {
+    	for (int i=0; i < N; i++) {
     		float w = random(0,width);
     		float h = random(0,height);
     		if (!TWODIMEN) {
@@ -286,7 +319,7 @@ class Population {
 		return pop.size();
 	}
 
-  	void addIndividual(Individual ind) {
+	void addIndividual(Individual ind) {
 		pop.add(ind);
 	}
 
@@ -302,12 +335,13 @@ class Population {
 		else {
 			float w = width/2 + random(-1,1);
 			float h = height/2 + random(-1,1);
-			population.addIndividual(new Individual(new PVector(w,h)));
+			pop.add(new Individual(new PVector(w,h)));
 		}
 		
 	}
 	
-	void die() {
+	boolean die() {					// return true if successful
+		boolean success = false;
 		// how many are not dying
 		int livecount = 0;
 		for (int i = 0; i < pop.size(); i++) {
@@ -325,11 +359,15 @@ class Population {
 			}
 			ind.dying = true;
 			ind.growing = false;
+			success = true;
 		}
+		return success;
 	}
 	
-	void splitstep() {
-		if (random(0,1) < SPLITCHANCE) {
+	void splitstep() {									// called once per frame
+		float popBD = (1 / (float)GEN) * (float) N;		// population birth-death rate
+		int events = poissonSample(popBD);	
+		for (int i = 0; i < events; i++) {
 			die();
 			replicate();
 		}
@@ -459,6 +497,23 @@ class Population {
 }
 
 float coulomb(float d) {
-	return sq(CHARGE) / sq(d);
+	float force;
+	if (d > 0) {
+		force = sq(CHARGE) / sq(d);
+	}
+	else {
+		force = 10000;
+	}
+	return force;
 }
 
+int poissonSample(float lambda) {
+	float t = exp(-1*lambda);
+	int k = 0;
+	float p = 1;
+	while (p > t) {
+		k++;
+		p *= random(0,1);
+	}
+	return k - 1;
+}

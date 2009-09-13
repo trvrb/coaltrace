@@ -2,6 +2,10 @@
 // each frame a Poisson number of birth-death events occur
 // and a Poisson number of mutations occur
 
+// calculate dynamic TRACEDEPTH based upon height of window for 1d
+// need height pixels
+// keep TRACEDEPTH constant at whatever works best for performance
+
 float CHARGE;
 float MAXVEL;
 float MAXRAD;
@@ -39,7 +43,7 @@ void setup() {
 	BASELINE = 25;
 	WALLMULTIPLIER = 20;
 	TRACEDEPTH = 50; // 300
-	TRACESTEP = 20; // 20
+	TRACESTEP = 16; // 20
 	PUSHBACK = 0.75;
 	
 	N = 2;
@@ -79,20 +83,27 @@ void stats() {
 	text(N + " individuals",10,25);
 
 	// generation time
-	float rate = round(frameRate * (1/(float)GEN) * 10.0)/10.0;
-	text(rate + " gen / sec", 10, 45);
-
-	textFont(fontN, 12);
-	float t = 0;		
-	if (N>0) { line(width-34,height-BASELINE,width-10,height-BASELINE); }
-	for (int k = N; k > 1; k--) {
-		float mod = coalInterval(k);
-		if (mod > 10) { 
-			if (k < 10) { text(k,width-24,height-t-mod/2-BASELINE+5); }
-			else { text(k,width-27.5,height-t-mod/2-BASELINE+5); }
+	float grate = round(frameRate * (1/(float)GEN) * 10.0)/10.0;
+	text(grate + " gen / sec", 10, 47);
+	
+	if (!TWODIMEN) {
+	
+		// trace time
+		int trate = int(round(frameRate * PUSHBACK));
+		text(trate + " pixels / sec", 10, 69);	
+	
+		textFont(fontN, 12);
+		float t = 0;		
+		if (N>0) { line(width-34,height-BASELINE,width-10,height-BASELINE); }
+		for (int k = N; k > 1; k--) {
+			float mod = coalInterval(k);
+			if (mod > 10) { 
+				if (k < 10) { text(k,width-24,height-t-mod/2-BASELINE+5); }
+				else { text(k,width-27.5,height-t-mod/2-BASELINE+5); }
+			}
+			t += mod;
+			line(width-34,height-t-BASELINE,width-10,height-t-BASELINE);	
 		}
-		t += mod;
-		line(width-34,height-t-BASELINE,width-10,height-t-BASELINE);	
 	}
 	
 }
@@ -153,7 +164,13 @@ void keyPressed() {
   	} 
 	if (keyCode == LEFT) { 
 		GEN += 1.0;
-  	}   	
+  	}   
+	if (key == '.') { 
+		PUSHBACK += 0.01;
+  	}  
+	if (key == ',') { 
+		PUSHBACK -= 0.01;
+  	}    	
 }
 
 class Individual {
@@ -225,6 +242,8 @@ class Individual {
 		
 		reset();
 		
+		// dynamically calculate TRACESTEP
+		TRACESTEP = int( (float)height / (float) (TRACEDEPTH * PUSHBACK) ) + 1;
 		if (frameCount % TRACESTEP == 0) {
 			extendTrace();
 		}

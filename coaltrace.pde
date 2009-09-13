@@ -77,14 +77,16 @@ void stats() {
 	stroke(0,0,100);
 	textFont(fontN, 20);
 	String str;
-//	text(int(frameRate), 10, 25);
+	
+	// frame rate
+//	text(int(frameRate), width-30, 25);
 
 	// population size
 	text(N + " individuals",10,25);
 
 	// generation time
-	float grate = round(frameRate * (1/(float)GEN) * 10.0)/10.0;
-	text(grate + " gen / sec", 10, 47);
+	float grate = round(( (float) GEN / (float) frameRate ) * 10.0)/10.0;
+	text(grate + " sec / gen", 10, 47);
 	
 	if (!TWODIMEN) {
 	
@@ -160,10 +162,10 @@ void keyPressed() {
 		if (success) { N--; }
   	}   
 	if (keyCode == RIGHT) { 
-		GEN -= 1.0;
+		GEN += 1.0;
   	} 
 	if (keyCode == LEFT) { 
-		GEN += 1.0;
+		GEN -= 1.0;
   	}   
 	if (key == '.') { 
 		PUSHBACK += 0.01;

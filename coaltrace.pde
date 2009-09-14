@@ -75,7 +75,7 @@ void draw() {
 void stats() {
 	fill(0,0,100);
 	stroke(0,0,100);
-	textFont(fontN, 20);
+	textFont(fontN, 16);
 	String str;
 	
 	// frame rate
@@ -85,15 +85,19 @@ void stats() {
 	text(N + " individuals",10,25);
 
 	// generation time
-	float grate = round(( (float) GEN / (float) frameRate ) * 10.0)/10.0;
-	text(grate + " sec / gen", 10, 47);
+	if (DYNAMICS) {
+		float grate = round(( (float) GEN / (float) frameRate ) * 10.0)/10.0;
+		text(grate + " sec / gen", 10, 45);
+	}
 	
-	if (!TWODIMEN) {
-	
-		// trace time
+	// trace time
+	if (!TWODIMEN && TRACING) {
 		int trate = int(round(frameRate * PUSHBACK));
-		text(trate + " pixels / sec", 10, 69);	
+		text(trate + " pixels / sec", 10, 65);	
+	}
 	
+	// intervals
+	if (!TWODIMEN && DYNAMICS && TRACING) {
 		textFont(fontN, 12);
 		float t = 0;		
 		if (N>0) { line(width-34,height-BASELINE,width-10,height-BASELINE); }

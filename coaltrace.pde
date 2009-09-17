@@ -88,7 +88,8 @@ void showFrameRate() {
 	fill(0,0,100);
 	stroke(0,0,100);
 	textFont(fontN, 16);
-	text(int(frameRate), width-30, 25);
+	int fps = int(frameRate);
+	text(fps + " frames / sec", 10, 85);
 }
 
 void help() {
@@ -97,21 +98,25 @@ void help() {
 	stroke(0,0,100);
 	textFont(fontN, 16);
 
-	text("H",10,100); text("-  show/hide keyboard commands",70,100);
-	text("F",10,120); text("-  show/hide frame rate",70,120);
-	text("S",10,140); text("-  show/hide statistics",70,140);
-	text("T",10,160); text("-  show/hide tracing",70,160);
-	text("SPACE",10,180); text("-  start/stop animation",70,180);
-	text("D",10,200); text("-  start/stop population dynamics",70,200);
-	text("M",10,220); text("-  start/stop mutation",70,220);
-	text("2",10,240); text("-  switch between 1 and 2 dimensions",70,240);
-	text("DOWN",10,260); text("-  decrease population size",70,260);
-	text("UP",10,280); text("-  increase population size",70,280);
-	text("LEFT",10,300); text("-  decrease generation time",70,300);
-	text("RIGHT",10,320); text("-  increase generation time",70,320);
-	text("<",10,340); text("-  decrease trace rate",70,340);
-	text(">",10,360); text("-  increase trace rate",70,360);
-	text("CLICK",10,380); text("-  add migrant to population",70,380);
+	float h = 120;
+	text("H",10,h); text("-  show/hide keyboard commands",70,h); h += 20;
+	text("F",10,h); text("-  show/hide frame rate",70,h); h += 20;
+	text("S",10,h); text("-  show/hide statistics",70,h); h += 20;
+	text("T",10,h); text("-  show/hide tracing",70,h); h += 20;
+	text("SPACE",10,h); text("-  start/stop animation",70,h); h += 20;
+	text("D",10,h); text("-  start/stop population dynamics",70,h); h += 20;
+	text("M",10,h); text("-  start/stop mutation",70,h); h += 20;
+	text("2",10,h); text("-  switch between 1 and 2 dimensions",70,h); h += 20;
+	text("DOWN",10,h); text("-  decrease population size",70,h); h += 20;
+	text("UP",10,h); text("-  increase population size",70,h); h += 20;
+	text("LEFT",10,h); text("-  decrease generation time",70,h); h += 20;
+	text("RIGHT",10,h); text("-  increase generation time",70,h); h += 20;
+	text("<",10,h); text("-  decrease trace rate",70,h); h += 20;
+	text(">",10,h); text("-  increase trace rate",70,h); h += 20;
+	text("CLICK",10,h); text("-  add migrant to population",70,h); h += 20;
+	
+	textFont(fontN, 12);
+	text("Copyright 2009 Trevor Bedford",width-165,20);
 	
 }
 

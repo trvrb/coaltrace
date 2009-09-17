@@ -24,6 +24,8 @@ boolean MUTATION;
 boolean TRACING;
 boolean DYNAMICS;
 boolean STATISTICS;
+boolean HELP;
+boolean FRATE;
 
 Population population;
 PFont fontN;
@@ -32,10 +34,12 @@ PFont fontI;
 void setup() {
 
 	TWODIMEN = false;
-	MUTATION = true;
+	MUTATION = false;
 	TRACING = true;
 	DYNAMICS = true;
 	STATISTICS = true;
+	HELP = true;
+	FRATE = false;
 
 	CHARGE = 30; // 50
 	MAXVEL = 2; // 2
@@ -46,7 +50,7 @@ void setup() {
 	TRACESTEP = 16; // 20
 	PUSHBACK = 0.75;
 	
-	N = 2;
+	N = 5;
 	MU = 0.1;
 	GEN = 60.0;			// frames per generation
 	
@@ -70,16 +74,46 @@ void draw() {
 	background(0,0,20); // 255
 	population.run();
 	if (STATISTICS) { stats(); }
+	if (HELP) { help(); }
+	if (FRATE) { showFrameRate(); }
 }
 
-void stats() {
+void showFrameRate() {
 	fill(0,0,100);
 	stroke(0,0,100);
 	textFont(fontN, 16);
-	String str;
+	text(int(frameRate), width-30, 25);
+}
+
+void help() {
 	
-	// frame rate
-//	text(int(frameRate), width-30, 25);
+	fill(0,0,100);
+	stroke(0,0,100);
+	textFont(fontN, 16);
+
+	text("H",10,100); text("-  show/hide keyboard commands",70,100);
+	text("F",10,120); text("-  show/hide frame rate",70,120);
+	text("S",10,140); text("-  show/hide statistics",70,140);
+	text("T",10,160); text("-  show/hide tracing",70,160);
+	text("SPACE",10,180); text("-  start/stop animation",70,180);
+	text("D",10,200); text("-  start/stop population dynamics",70,200);
+	text("M",10,220); text("-  start/stop mutation",70,220);
+	text("2",10,240); text("-  switch between 1 and 2 dimensions",70,240);
+	text("DOWN",10,260); text("-  decrease population size",70,260);
+	text("UP",10,280); text("-  increase population size",70,280);
+	text("LEFT",10,300); text("-  decrease generation time",70,300);
+	text("RIGHT",10,320); text("-  increase generation time",70,320);
+	text("<",10,340); text("-  decrease trace rate",70,340);
+	text(">",10,360); text("-  increase trace rate",70,360);
+	
+
+}
+
+void stats() {
+
+	fill(0,0,100);
+	stroke(0,0,100);
+	textFont(fontN, 16);
 
 	// population size
 	text(N + " individuals",10,25);
@@ -156,7 +190,15 @@ void keyPressed() {
   	if (key == 's') {
 		if (STATISTICS) { STATISTICS = false; }
 		else if (!STATISTICS) { STATISTICS = true; }
-  	}    	
+  	}    
+  	if (key == 'h') {
+		if (HELP) { HELP = false; }
+		else if (!HELP) { HELP = true; }
+  	}      	
+  	if (key == 'f') {
+		if (FRATE) { FRATE = false; }
+		else if (!FRATE) { FRATE = true; }
+  	}      	  	
 	if (keyCode == UP) { 
 		population.replicate();
 		N++;

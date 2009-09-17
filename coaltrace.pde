@@ -1,10 +1,18 @@
-// measure time in units of frames, report in units of seconds
-// each frame a Poisson number of birth-death events occur
-// and a Poisson number of mutations occur
+// COALTRACE
+// Copyright 2009 Trevor Bedford
 
-// calculate dynamic TRACEDEPTH based upon height of window for 1d
-// need height pixels
-// keep TRACEDEPTH constant at whatever works best for performance
+/*	This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 float CHARGE;
 float MAXVEL;
@@ -59,8 +67,6 @@ void setup() {
 	
 	size(800, 600);
 	colorMode(HSB,100);
-//	frameRate(1000);
-//	size(screen.width, screen.height);
 	smooth();
 	noStroke();
 	population = new Population();	// begins with a single individual
@@ -71,7 +77,7 @@ void setup() {
 }
 
 void draw() {
-	background(0,0,20); // 255
+	background(0,0,20);
 	population.run();
 	if (STATISTICS) { stats(); }
 	if (HELP) { help(); }
@@ -105,8 +111,8 @@ void help() {
 	text("RIGHT",10,320); text("-  increase generation time",70,320);
 	text("<",10,340); text("-  decrease trace rate",70,340);
 	text(">",10,360); text("-  increase trace rate",70,360);
+	text("CLICK",10,380); text("-  add migrant to population",70,380);
 	
-
 }
 
 void stats() {
@@ -497,7 +503,7 @@ class Population {
 		
 			Individual ind = (Individual) pop.get(i);
 			
-			// repel from other Individuals
+			// freeze on contact with other individuals
 	/*		for (int j = 0 ; j < pop.size(); j++) {
 				if (i != j) {
 					Individual jnd = (Individual) pop.get(j);
@@ -571,8 +577,6 @@ class Population {
 			
 		}
 		
-
-
   	}
 
 }

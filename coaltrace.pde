@@ -34,6 +34,9 @@ boolean DYNAMICS;
 boolean STATISTICS;
 boolean HELP;
 boolean FRATE;
+boolean GRAYBG;
+float BG;
+float OUTLINE;
 
 Population population;
 PFont fontN;
@@ -42,12 +45,13 @@ PFont fontI;
 void setup() {
 
 	TWODIMEN = false;
-	MUTATION = false;
+	MUTATION = true;
 	TRACING = true;
 	DYNAMICS = true;
-	STATISTICS = true;
-	HELP = true;
+	STATISTICS = false;
+	HELP = false;
 	FRATE = false;
+	GRAYBG = false;
 
 	CHARGE = 30; // 50
 	MAXVEL = 2; // 2
@@ -58,26 +62,36 @@ void setup() {
 	TRACESTEP = 16; // 20
 	PUSHBACK = 0.75;
 	
-	N = 5;
+	if (GRAYBG) {
+		BG = 20;
+		OUTLINE = 100;
+	}
+	else {
+		BG = 100;
+		OUTLINE = 20;
+	}
+	
+	N = 16;
 	MU = 0.1;
-	GEN = 60.0;			// frames per generation
+	GEN = 30.0;			// frames per generation
 	
 	INDHUE = 95;
 	LOOPING = true;
 	
-	size(800, 600);
+//	size(800, 600);
+	size(600,400);
 	colorMode(HSB,100);
 	smooth();
 	noStroke();
 	population = new Population();	// begins with a single individual
 	
 	fontN = loadFont("GillSans-48.vlw");
-	fontI = loadFont("GillSans-Italic-48.vlw");
+//	fontI = loadFont("GillSans-Italic-48.vlw");
 	
 }
 
 void draw() {
-	background(0,0,20);
+	background(0,0,BG);
 	population.run();
 	if (STATISTICS) { stats(); }
 	if (HELP) { help(); }
@@ -85,8 +99,8 @@ void draw() {
 }
 
 void showFrameRate() {
-	fill(0,0,100);
-	stroke(0,0,100);
+	fill(0,0,OUTLINE);
+	stroke(0,0,OUTLINE);
 	textFont(fontN, 16);
 	int fps = int(frameRate);
 	text(fps + " frames / sec", 10, 85);
@@ -94,8 +108,9 @@ void showFrameRate() {
 
 void help() {
 	
-	fill(0,0,100);
-	stroke(0,0,100);
+	fill(0,0,OUTLINE);
+	stroke(0,0,OUTLINE);
+	smooth();
 	textFont(fontN, 16);
 
 	float h = 120;
@@ -103,6 +118,7 @@ void help() {
 	text("F",10,h); text("-  show/hide frame rate",70,h); h += 20;
 	text("S",10,h); text("-  show/hide statistics",70,h); h += 20;
 	text("T",10,h); text("-  show/hide tracing",70,h); h += 20;
+	text("C",10,h); text("-  switch between background colors",70,h); h += 20;
 	text("SPACE",10,h); text("-  start/stop animation",70,h); h += 20;
 	text("D",10,h); text("-  start/stop population dynamics",70,h); h += 20;
 	text("M",10,h); text("-  start/stop mutation",70,h); h += 20;
@@ -114,7 +130,7 @@ void help() {
 	text("<",10,h); text("-  decrease trace rate",70,h); h += 20;
 	text(">",10,h); text("-  increase trace rate",70,h); h += 20;
 	text("CLICK",10,h); text("-  add migrant to population",70,h); h += 20;
-	
+		
 	textFont(fontN, 12);
 	text("Copyright 2009 Trevor Bedford",width-165,20);
 	
@@ -122,8 +138,8 @@ void help() {
 
 void stats() {
 
-	fill(0,0,100);
-	stroke(0,0,100);
+	fill(0,0,OUTLINE);
+	stroke(0,0,OUTLINE);
 	textFont(fontN, 16);
 
 	// population size
@@ -229,7 +245,22 @@ void keyPressed() {
   	}  
 	if (key == ',') { 
 		PUSHBACK -= 0.01;
-  	}    	
+  	}  
+//	if (key == 'p') { 
+//		save("image.png");
+//  	}   	
+	if (key == 'c') {
+		if (GRAYBG) {
+			GRAYBG = false;
+			BG = 100;
+			OUTLINE = 20;
+		}
+		else if (!GRAYBG) {
+			GRAYBG = true;
+			BG = 20;
+			OUTLINE = 100;
+		}
+  	}   	
 }
 
 class Individual {
@@ -362,7 +393,7 @@ class Individual {
   	void displayInd() {
   	    // draw a circle for each individual
 		fill(hue,90,100); // 223,227,197
-    	stroke(0,0,100);
+    	stroke(0,0,OUTLINE);
     	ellipse(loc.x, loc.y, r*2, r*2);
   	}
   	

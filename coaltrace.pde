@@ -35,6 +35,7 @@ boolean STATISTICS;
 boolean HELP;
 boolean FRATE;
 boolean GRAYBG;
+boolean BRANCHCOLORING;
 float BG;
 float OUTLINE;
 
@@ -51,15 +52,16 @@ void setup() {
 	STATISTICS = false;
 	HELP = false;
 	FRATE = false;
-	GRAYBG = false;
+	GRAYBG = true;
+	BRANCHCOLORING = true;
 
 	CHARGE = 30; // 50
 	MAXVEL = 2; // 2
 	MAXRAD = 6;
 	BASELINE = 25;
 	WALLMULTIPLIER = 20;
-	TRACEDEPTH = 50; // 300
-	TRACESTEP = 16; // 20
+	TRACEDEPTH = 20; // 300
+	TRACESTEP = 18; // 20
 	PUSHBACK = 0.75;
 	
 	if (GRAYBG) {
@@ -73,13 +75,13 @@ void setup() {
 	
 	N = 16;
 	MU = 0.1;
-	GEN = 30.0;			// frames per generation
+	GEN = 60.0;			// frames per generation
 	
 	INDHUE = 95;
 	LOOPING = true;
-	
-//	size(800, 600);
-	size(600,400);
+
+//	size(1280,800);	
+	size(600,450);
 	colorMode(HSB,100);
 	smooth();
 	noStroke();
@@ -111,28 +113,28 @@ void help() {
 	fill(0,0,OUTLINE);
 	stroke(0,0,OUTLINE);
 	smooth();
-	textFont(fontN, 16);
+	textFont(fontN, 14);
 
-	float h = 120;
-	text("H",10,h); text("-  show/hide keyboard commands",70,h); h += 20;
-	text("F",10,h); text("-  show/hide frame rate",70,h); h += 20;
-	text("S",10,h); text("-  show/hide statistics",70,h); h += 20;
-	text("T",10,h); text("-  show/hide tracing",70,h); h += 20;
-	text("C",10,h); text("-  switch between background colors",70,h); h += 20;
-	text("SPACE",10,h); text("-  start/stop animation",70,h); h += 20;
-	text("D",10,h); text("-  start/stop population dynamics",70,h); h += 20;
-	text("M",10,h); text("-  start/stop mutation",70,h); h += 20;
-	text("2",10,h); text("-  switch between 1 and 2 dimensions",70,h); h += 20;
-	text("DOWN",10,h); text("-  decrease population size",70,h); h += 20;
-	text("UP",10,h); text("-  increase population size",70,h); h += 20;
-	text("LEFT",10,h); text("-  decrease generation time",70,h); h += 20;
-	text("RIGHT",10,h); text("-  increase generation time",70,h); h += 20;
-	text("<",10,h); text("-  decrease trace rate",70,h); h += 20;
-	text(">",10,h); text("-  increase trace rate",70,h); h += 20;
-	text("CLICK",10,h); text("-  add migrant to population",70,h); h += 20;
+	float h = 110;
+	float mod = 20;
+	float fromleft = 100;
+	text("H",10,h); text("-  show/hide keyboard commands",fromleft,h); h += mod;
+	text("F",10,h); text("-  show/hide frame rate",fromleft,h); h += mod;
+	text("S",10,h); text("-  show/hide statistics",fromleft,h); h += mod;
+	text("T",10,h); text("-  show/hide tracing",fromleft,h); h += mod;
+	text("C",10,h); text("-  switch between background colors",fromleft,h); h += mod;
+	text("B",10,h); text("-  turn on/off branch coloring",fromleft,h); h += mod;	
+	text("SPACE",10,h); text("-  start/stop animation",fromleft,h); h += mod;
+	text("D",10,h); text("-  start/stop population dynamics",fromleft,h); h += mod;
+	text("M",10,h); text("-  start/stop mutation",fromleft,h); h += mod;
+	text("2",10,h); text("-  switch between 1 and 2 dimensions",fromleft,h); h += mod;
+	text("DOWN / UP",10,h); text("-  decrease / increase population size",fromleft,h); h += mod;
+	text("LEFT / RIGHT",10,h); text("-  decrease / increase generation time",fromleft,h); h += mod;
+	text(", / .",10,h); text("-  decrease / increase trace rate",fromleft,h); h += mod;
+	text("CLICK",10,h); text("-  add migrant to population",fromleft,h); h += mod;
 		
 	textFont(fontN, 12);
-	text("Copyright 2009 Trevor Bedford",width-165,20);
+	text("Copyright 2009-2010 Trevor Bedford",width-205,20);
 	
 }
 
@@ -163,7 +165,7 @@ void stats() {
 		float t = 0;		
 		if (N>0) { line(width-34,height-BASELINE,width-10,height-BASELINE); }
 		for (int k = N; k > 1; k--) {
-			float mod = coalInterval(k);
+			float mod = (float) coalInterval(k);
 			if (mod > 10) { 
 				if (k < 10) { text(k,width-24,height-t-mod/2-BASELINE+5); }
 				else { text(k,width-27.5,height-t-mod/2-BASELINE+5); }
@@ -208,7 +210,10 @@ void keyPressed() {
   	}   
   	if (key == 't') {
 		if (TRACING) { TRACING = false; }
-		else if (!TRACING) { TRACING = true; }
+		else if (!TRACING) { 
+			population.resetTrace();
+			TRACING = true; 
+		}
   	} 
   	if (key == 'd') {
 		if (DYNAMICS) { DYNAMICS = false; }
@@ -218,6 +223,10 @@ void keyPressed() {
 		if (STATISTICS) { STATISTICS = false; }
 		else if (!STATISTICS) { STATISTICS = true; }
   	}    
+  	if (key == 'b') {
+		if (BRANCHCOLORING) { BRANCHCOLORING = false; }
+		else if (!BRANCHCOLORING) { BRANCHCOLORING = true; }
+  	}      	
   	if (key == 'h') {
 		if (HELP) { HELP = false; }
 		else if (!HELP) { HELP = true; }
@@ -246,9 +255,6 @@ void keyPressed() {
 	if (key == ',') { 
 		PUSHBACK -= 0.01;
   	}  
-//	if (key == 'p') { 
-//		save("image.png");
-//  	}   	
 	if (key == 'c') {
 		if (GRAYBG) {
 			GRAYBG = false;
@@ -272,7 +278,7 @@ class Individual {
 	boolean growing;
 	boolean dying;
 	float hue;
-	LinkedList trace;
+	ArrayList trace;
 
 	Individual(PVector l) {
 		loc = l.get();
@@ -289,14 +295,14 @@ class Individual {
 			loc.y = height-BASELINE;					// constrains to horizontal line	
 		}
   
-    	trace = new LinkedList();
+    	trace = new ArrayList();
     	for (int i = 0; i < TRACEDEPTH; i++) {
     		PVector tl = new PVector(loc.x,loc.y,hue);
     		trace.add(tl);
     	}
 	}
 	
-	Individual(PVector l, Float h, LinkedList array) {
+	Individual(PVector l, Float h, ArrayList array) {
 		loc = l.get();
     	vel = new PVector(0,0);
     	acc = new PVector(0,0);
@@ -304,7 +310,7 @@ class Individual {
     	growing = true;
     	dying = false;
     	hue = h;
-    	trace = new LinkedList();
+    	trace = new ArrayList();
     	for (int i = 0; i < array.size(); i++) {
     		PVector tl = (PVector) array.get(i);
     		float x = tl.x;
@@ -348,11 +354,11 @@ class Individual {
 	void extendTrace() {
     	PVector tl = new PVector(loc.x,loc.y,hue);
     	trace.add(tl);
-    	trace.remove();
+    	trace.remove(0);
 	}
 	
 	void resetTrace() {
-	    trace = new LinkedList();
+	    trace = new ArrayList();
     	for (int i = 0; i < TRACEDEPTH; i++) {
     		PVector tl = new PVector(loc.x,loc.y,hue);
     		trace.add(tl);
@@ -370,23 +376,23 @@ class Individual {
   	
   	void displayTrace() {
   	    // draw tail on each individual
+  	    // this is counting down from the tail of the trace
     	float tempx = loc.x;
     	float tempy = loc.y;
     	float temph = hue;
-  //  	float sat = 100;
-		ListIterator itr = trace.listIterator(TRACEDEPTH);
-		while (itr.hasPrevious()) {
-   			PVector tl = (PVector) itr.previous();
+    	for (int i = TRACEDEPTH - 1; i > 0; i--) {
+   			PVector tl = (PVector) trace.get(i);
     		if (!TWODIMEN) {
     			tl.y = tl.y - PUSHBACK;
     		}
-    //		stroke(tl.z,100,100,sat);			// 150% slower than with transparency
-    		stroke(tl.z,100,100);
-    //		ellipse(tl.x, tl.y, 2, 2);
+    		if (BRANCHCOLORING) { stroke(tl.z,90,100); }
+    		else {
+    			if (GRAYBG) { stroke(tl.z,0,100); }
+    			else { stroke(tl.z,0,0); }
+    		}
     		line(tempx, tempy, tl.x, tl.y);
     		tempx = tl.x;
     		tempy = tl.y;
-    //		sat = sat - 100 / (float) TRACEDEPTH;
     	}
   	}
   	
@@ -649,7 +655,7 @@ float coalInterval(int k) {
 	// converting from generations to frames
 	float frames = generations * GEN;
 	// converting from frames to pixels
-	float pixels = frames * PUSHBACK;
+	float mod = frames * PUSHBACK;
 	
-	return pixels;
+	return mod;
 }

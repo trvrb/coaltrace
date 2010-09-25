@@ -82,6 +82,7 @@ void setup() {
 
 //	size(1280,800);	
 	size(600,450);
+	frameRate(60);	
 	colorMode(HSB,100);
 	smooth();
 	noStroke();

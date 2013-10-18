@@ -1,7 +1,7 @@
 # Simulating genealogies using charged particles
 
 <script src="processing.min.js"></script>
-<canvas datasrc="coaltrace.pjs" width="600" height="450"></canvas>	
+<canvas datasrc="coaltrace.pjs" width="600" height="450">Canvas Element</canvas>	
 
 This is a simulation of the basic demographic / genealogical process.  Individuals are born and individuals die.  This causes lineages to branch and to disappear, and causes the population to share a common ancestor at some time in the past.  The *coalescent* provides a mathematical description of these patterns of ancestry.
 		

@@ -1,5 +1,3 @@
-# Simulating genealogies using charged particles
-
 <script src="processing.min.js"></script>
 <canvas datasrc="coaltrace.pjs" width="600" height="450">`Can't load canvas`</canvas>	
 

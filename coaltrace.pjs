@@ -52,7 +52,7 @@ void setup() {
 	STATISTICS = false;
 	HELP = false;
 	FRATE = false;
-	GRAYBG = false;
+	GRAYBG = true;
 	BRANCHCOLORING = true;
 
 	CHARGE = 30; // 50

@@ -1,5 +1,5 @@
 // COALTRACE
-// Copyright 2009 Trevor Bedford
+// Copyright 2009-2015 Trevor Bedford
 
 /*	This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,11 +57,11 @@ void setup() {
 
 	CHARGE = 30; // 50
 	MAXVEL = 2; // 2
-	MAXRAD = 6;
-	BASELINE = 25;
+	MAXRAD = 10;
+	BASELINE = 60;
 	WALLMULTIPLIER = 20;
-	TRACEDEPTH = 20; // 300
-	TRACESTEP = 18; // 20
+	TRACEDEPTH = 60; // 300
+	TRACESTEP = 25; // 20
 	PUSHBACK = 0.75;
 	
 	if (GRAYBG) {
@@ -73,19 +73,19 @@ void setup() {
 		OUTLINE = 20;
 	}
 	
-	N = 16;
+	N = 12;
 	MU = 0.1;
 	GEN = 60.0;			// frames per generation
 	
 	INDHUE = 95;
 	LOOPING = true;
 
-//	size(1280,800);	
-	size(600,450);
+	size(1920,1080);	
 	frameRate(60);	
 	colorMode(HSB,100);
 	smooth();
 	noStroke();
+	strokeWeight(3);	
 	population = new Population();	// begins with a single individual
 	
 	fontN = loadFont("GillSans-48.vlw");
@@ -135,7 +135,7 @@ void help() {
 	text("CLICK",10,h); text("-  add migrant to population",fromleft,h); h += mod;
 		
 	textFont(fontN, 12);
-	text("Copyright 2009-2010 Trevor Bedford",width-205,20);
+	text("Copyright 2009-2015 Trevor Bedford",width-205,20);
 	
 }
 
@@ -339,8 +339,6 @@ class Individual {
 		
 		reset();
 		
-		// dynamically calculate TRACESTEP
-		TRACESTEP = int( (float)height / (float) (TRACEDEPTH * PUSHBACK) ) + 1;
 		if (frameCount % TRACESTEP == 0) {
 			extendTrace();
 		}
